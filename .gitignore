@@ -1,0 +1,20 @@
+# ambiente virtual
+.venv/
+venv/
+
+# cache python
+__pycache__/
+*.pyc
+
+# arquivos do OS/editor
+.DS_Store
+.vscode/
+
+# streamlit
+.streamlit/secrets.toml
+
+# workspace
+*.code-workspace
+
+
+
