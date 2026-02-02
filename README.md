@@ -1,7 +1,7 @@
 # Industrial KPI Analyzer  
 Dashboard para Análise Automática de KPIs Industriais
 
-## 📊 Visão Geral do Dashboard
+### 🧪 Diagnóstico dos Dados
 
 ### 🔹 Visão Executiva
 ![Mapeamento](assets/dashboard_visao_executiva.png)
@@ -9,7 +9,7 @@ Dashboard para Análise Automática de KPIs Industriais
 ### 🔹 Evolução do KPI ao longo do tempo
 ![Gráfico KPI](assets/dashboard_grafico_kpi.png)
 
-### 🧪 Diagnóstico dos Dados
+## 📊 Visão Geral do Dashboard
 ![Visão Executiva](assets/dashboard_mapeamento.png)
 
 
