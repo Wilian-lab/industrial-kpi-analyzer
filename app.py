@@ -645,19 +645,27 @@ optional_cols = ["Para lembrar:", "observações", "Observações"]
 
 df_table = current_df.copy()
 
+# =========================
+# Ajuste de exibição numérica (auditoria)
+# =========================
+numeric_cols = df_table.select_dtypes(include=["number"]).columns
+
+for col in numeric_cols:
+    df_table[col] = df_table[col].round(0)
+
+# =========================
 # Remove colunas opcionais sem conteúdo
+# =========================
 for col in optional_cols:
     if col in df_table.columns:
         if df_table[col].isna().all():
             df_table = df_table.drop(columns=[col])
 
+
 st.dataframe(
     df_table,
     use_container_width=True
 )
-
-
-
 
 # =========================
 # Gráfico
@@ -670,37 +678,55 @@ if (
     section("Evolução do KPI", "📈")
 
     plot_df = (
-        chart_df[[time_col, kpi_col]]
-        .dropna(subset=[time_col, kpi_col])
-        .sort_values(time_col)
-        .set_index(time_col)
-    )
+    chart_df[[time_col, kpi_col]]
+    .dropna(subset=[time_col, kpi_col])
+    .sort_values(time_col)
+    .set_index(time_col)
+)
+
+    last_year = plot_df.index.max().year
+
+    full_range = pd.date_range(
+    start=plot_df.index.min(),
+    end=pd.Timestamp(year=last_year, month=12, day=1),
+    freq="MS"
+)
+
+    plot_df = plot_df.reindex(full_range)
+
+
     if not plot_df.empty:
         fig = px.line(
-            plot_df,
-            x=plot_df.index,
-            y=kpi_col,
-            markers=True,
-            title="Evolução do KPI ao longo do tempo"
-        )
+        plot_df,
+    x=plot_df.index,
+    y=kpi_col,
+    markers=True,
+    title="Evolução do KPI ao longo do tempo"
+)
 
-        
+#  eixo mensal correto (SEM datas fantasmas)
+        fig.update_xaxes(
+    type="date",
+    tickformat="%b/%Y",
+    dtick="M1",
+    ticklabelmode="period",
+    range=[
+        plot_df.index.min(),
+        plot_df.index.max()
+    ]
+)
+
 
         fig.add_hline(
-            y=meta_kpi,
-            line_dash="dash",
-            line_color="red",
-            annotation_text="Meta",
-            annotation_position="top right"
-        )
-
-        fig.update_layout(
-            xaxis_title="Período",
-            yaxis_title="Valor do KPI",
-            title_x=0.5
-        )
+    y=meta_kpi,
+    line_dash="dash",
+    line_color="red",
+    annotation_text="Meta",
+    annotation_position="top right"
+)
 
         st.plotly_chart(fig, use_container_width=True)
+
     else:
         st.info("ℹ️ Dados insuficientes para gerar gráfico temporal.")
 
