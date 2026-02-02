@@ -1,16 +1,16 @@
 # Industrial KPI Analyzer  
 Dashboard para Análise Automática de KPIs Industriais
 
-### 🧪 Diagnóstico dos Dados
-
-### 🔹 Visão Executiva
-![Mapeamento](assets/dashboard_visao_executiva.png)
+## 📊 Visão Geral do Dashboard
+![Visão Executiva](assets/dashboard_mapeamento.png)
 
 ### 🔹 Evolução do KPI ao longo do tempo
 ![Gráfico KPI](assets/dashboard_grafico_kpi.png)
 
-## 📊 Visão Geral do Dashboard
-![Visão Executiva](assets/dashboard_mapeamento.png)
+### 🧪 Diagnóstico dos Dados
+
+### 🔹 Visão Executiva
+![Mapeamento](assets/dashboard_visao_executiva.png)
 
 
 ### 🔹 Dados Consolidados
@@ -40,3 +40,5 @@ Aplicação em Streamlit para análise automática de KPIs industriais a partir 
 - Registros inválidos são ignorados automaticamente para reduzir risco de erro
 - O sistema indica a confiabilidade dos dados analisados, apoiando decisões mais seguras
 
+## 📊 Visão Geral do Dashboard
+![Visão Executiva](assets/dashboard_mapeamento.png)
