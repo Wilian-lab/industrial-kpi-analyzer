@@ -4,14 +4,13 @@ Dashboard para Análise Automática de KPIs Industriais
 ## 📊 Visão Geral do Dashboard
 ![Visão Executiva](assets/dashboard_mapeamento.png)
 
-### 🔹 Evolução do KPI ao longo do tempo
-![Gráfico KPI](assets/dashboard_grafico_kpi.png)
-
-### 🧪 Diagnóstico dos Dados
+## 🧪 Diagnóstico dos Dados
 
 ### 🔹 Visão Executiva
 ![Mapeamento](assets/dashboard_visao_executiva.png)
 
+### 🔹 Evolução do KPI ao longo do tempo
+![Gráfico KPI](assets/dashboard_grafico_kpi.png)
 
 ### 🔹 Dados Consolidados
 ![Dados Consolidados](assets/dashboard_dados_consolidados.png)
