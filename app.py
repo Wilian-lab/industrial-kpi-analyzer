@@ -3,6 +3,10 @@ import pandas as pd
 import numpy as np
 import re  # <-- coloque este import lá em cima junto com os outros
 import plotly.express as px
+st.cache_data.clear()
+st.cache_resource.clear()
+
+
 
 # ======================
 # Estado da aplicação
@@ -23,7 +27,7 @@ st.set_page_config(
 )
 st.markdown("## 📊 Industrial KPI Analyzer")
 st.markdown(
-    "<span style='color: #9FA2B4;'>Dashboard interativo para análise automática de KPIs industriais</span>",
+    "<span style='color: #9FA2B4;'>Dashboard interativo para análise automática de KPIs industriais</span>", 
     unsafe_allow_html=True
 )
 st.markdown("""
@@ -184,9 +188,16 @@ if files:
     for file in files:
         if file.name not in st.session_state.files_data:
             if file.name.lower().endswith(".csv"):
-                df = pd.read_csv(file, sep=None, engine="python", encoding="latin-1")
+                df = pd.read_csv(
+                    file,
+                    sep=None,
+                    engine="python",
+                    encoding="latin-1",
+                    dtype=str
+                )
             else:
                 df = pd.read_excel(file)
+
 
             df.columns = [c.strip() for c in df.columns]
             df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
@@ -225,12 +236,39 @@ else:
     st.info("Envie pelo menos uma planilha para começar.")
     st.stop()
 
+    # =========================
+# Normalização defensiva (CSV / Excel)
+# =========================
 
-    current_df = None
+
+
+# 1. Remove colunas totalmente vazias
+current_df = current_df.dropna(axis=1, how="all")
+
+# 2. Remove linhas sem nenhum número (texto solto do Excel)
+current_df = current_df[
+    current_df.apply(lambda row: row.astype(str).str.contains(r"\d").any(), axis=1)
+]
+
+# 3. Limpa nomes de colunas
+current_df.columns = (
+    current_df.columns
+        .astype(str)
+        .str.strip()
+        .str.replace("\n", " ")
+)
+
+# 4. Remove linhas explicativas tipo "Para lembrar"
+current_df = current_df[
+    ~current_df.apply(
+        lambda r: r.astype(str).str.contains("para lembrar", case=False).any(),
+        axis=1
+    )
+]
 # ==========================
 # Blindagem: nomes de colunas únicos
 # ==========================
-    current_df = st.session_state.files_data[st.session_state.active_file]
+    
 current_df.columns = (
     current_df.columns
     .astype(str)
@@ -370,19 +408,54 @@ if current_df.columns.duplicated().any():
     st.error(f"❌ Colunas duplicadas detectadas: {dup_cols}")
     st.stop()
 
-# =========================
-# Tratamento de tempo
-# =========================
-if time_col != "Nenhuma": # Converter para datetime
-    current_df[time_col] = pd.to_datetime(
-        current_df[time_col],
-        errors="coerce",
-        dayfirst=True
-    )
 
-if time_col != "Nenhuma" and current_df[time_col].notna().sum() > 0:
-    chart_df = current_df.sort_values(time_col)
-    
+# =========================
+# Tratamento de tempo (robusto)
+# =========================
+if time_col != "Nenhuma" and time_col in current_df.columns:
+
+    # Remove números puros que viram epoch (1970)
+    current_df[time_col] = current_df[time_col].apply(
+    lambda x: np.nan if str(x).strip().isdigit() else x
+)
+# Conversão para datetime
+    current_df[time_col] = pd.to_datetime(
+    current_df[time_col],
+    errors="coerce",
+    dayfirst=True
+)
+
+
+    # Tentativa 2: formato mês/ano em português (ex: fev/25)
+    if current_df[time_col].isna().all():
+
+        meses = {
+            "jan": "01", "fev": "02", "mar": "03", "abr": "04",
+            "mai": "05", "jun": "06", "jul": "07", "ago": "08",
+            "set": "09", "out": "10", "nov": "11", "dez": "12"
+        }
+
+        def parse_mes_ano(val):
+            if pd.isna(val):
+                return pd.NaT
+            s = str(val).lower().strip()
+            for m, num in meses.items():
+                if s.startswith(m):
+                    return pd.to_datetime(f"20{s[-2:]}-{num}-01", errors="coerce")
+            return pd.NaT
+
+        current_df[time_col] = current_df[time_col].apply(parse_mes_ano)
+
+# Ordenação segura
+if time_col != "Nenhuma":
+    chart_df = (
+    current_df
+    .dropna(subset=[time_col])
+    .loc[current_df[time_col] >= pd.Timestamp("2000-01-01")]
+    .sort_values(time_col)
+)
+
+
 else:
     chart_df = current_df.copy()
 
@@ -568,6 +641,10 @@ st.dataframe(
     df_table,
     use_container_width=True
 )
+
+
+
+
 # =========================
 # Gráfico
 # =========================
@@ -578,17 +655,21 @@ if (
 ):
     section("Evolução do KPI", "📈")
 
-
     plot_df = (
         chart_df[[time_col, kpi_col]]
         .dropna(subset=[time_col, kpi_col])
         .sort_values(time_col)
         .set_index(time_col)
     )
+    st.write(plot_df.reset_index().head(5))
+
+
+    # ⬇️ COLOQUE AQUI ⬇️
+    st.write("DATA MÍNIMA NO GRÁFICO:", plot_df.index.min())
+    st.write("DATA MÁXIMA NO GRÁFICO:", plot_df.index.max())
+    # ⬆️ AQUI ⬆️
 
     if not plot_df.empty:
-        import plotly.express as px
-
         fig = px.line(
             plot_df,
             x=plot_df.index,
@@ -596,6 +677,8 @@ if (
             markers=True,
             title="Evolução do KPI ao longo do tempo"
         )
+
+        
 
         fig.add_hline(
             y=meta_kpi,
