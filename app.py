@@ -3,11 +3,6 @@ import pandas as pd
 import numpy as np
 import re  # <-- coloque este import lá em cima junto com os outros
 import plotly.express as px
-st.cache_data.clear()
-st.cache_resource.clear()
-
-
-
 # ======================
 # Estado da aplicação
 # ======================
@@ -220,6 +215,15 @@ if st.session_state.files_data:
             st.session_state.active_file
         )
     )
+    # =========================
+# Estado por planilha
+# =========================
+if "file_states" not in st.session_state:
+    st.session_state.file_states = {}
+
+if st.session_state.active_file not in st.session_state.file_states:
+    st.session_state.file_states[st.session_state.active_file] = {}
+
 
 st.sidebar.markdown("---")
 
@@ -344,21 +348,31 @@ kpi_unit = st.selectbox(
     ["Percentual (%)", "Valor absoluto"]
 )
 
+file_state = st.session_state.file_states[st.session_state.active_file]
+
 if kpi_unit == "Percentual (%)":
+    is_percent_kpi = True
+
     meta_kpi = st.number_input(
         "Meta do KPI (%)",
-        value=float(meta_sugerida),
-        step=0.1
+        value=file_state.get("meta_kpi", float(meta_sugerida)),
+        step=0.1,
+        key=f"meta_{st.session_state.active_file}"
     )
-    is_percent_kpi = True
-else:
-    meta_kpi = st.number_input(
-    "Meta do KPI (valor)",
-    value=float(meta_sugerida),
-    step=max(1.0, meta_sugerida * 0.05)
-)
 
+else:
     is_percent_kpi = False
+
+    meta_kpi = st.number_input(
+        "Meta do KPI (valor)",
+        value=file_state.get("meta_kpi", float(meta_sugerida)),
+        step=max(1.0, meta_sugerida * 0.05),
+        key=f"meta_{st.session_state.active_file}"
+    )
+
+file_state["meta_kpi"] = meta_kpi
+
+
 
 # =========================
 # Normalização do KPI
@@ -661,14 +675,6 @@ if (
         .sort_values(time_col)
         .set_index(time_col)
     )
-    st.write(plot_df.reset_index().head(5))
-
-
-    # ⬇️ COLOQUE AQUI ⬇️
-    st.write("DATA MÍNIMA NO GRÁFICO:", plot_df.index.min())
-    st.write("DATA MÁXIMA NO GRÁFICO:", plot_df.index.max())
-    # ⬆️ AQUI ⬆️
-
     if not plot_df.empty:
         fig = px.line(
             plot_df,
