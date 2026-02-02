@@ -40,5 +40,4 @@ Aplicação em Streamlit para análise automática de KPIs industriais a partir 
 - Registros inválidos são ignorados automaticamente para reduzir risco de erro
 - O sistema indica a confiabilidade dos dados analisados, apoiando decisões mais seguras
 
-## 📊 Visão Geral do Dashboard
-![Visão Executiva](assets/dashboard_mapeamento.png)
+
